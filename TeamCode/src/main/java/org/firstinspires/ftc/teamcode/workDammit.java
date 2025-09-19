@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="Wheel Direction Test", group="Linear OpMode")
+@TeleOp(name="Wheel Direction Test", group="Fritz")
 //@Disabled
 public class workDammit extends LinearOpMode {
 

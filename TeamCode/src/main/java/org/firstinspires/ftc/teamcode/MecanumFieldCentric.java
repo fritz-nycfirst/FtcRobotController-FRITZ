@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@TeleOp
+@TeleOp (name="Mecanum Field Centric", group = "Fritz")
 public class MecanumFieldCentric extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

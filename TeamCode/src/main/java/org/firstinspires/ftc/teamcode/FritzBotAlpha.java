@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -16,52 +18,12 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/*
- * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
- * The code assumes a Holonomic (Mecanum or X Drive) Robot.
- *
- * For an introduction to AprilTags, see the ftc-docs link below:
- * https://ftc-docs.firstinspires.org/en/latest/apriltag/vision_portal/apriltag_intro/apriltag-intro.html
- *
- * When an AprilTag in the TagLibrary is detected, the SDK provides location and orientation of the tag, relative to the camera.
- * This information is provided in the "ftcPose" member of the returned "detection", and is explained in the ftc-docs page linked below.
- * https://ftc-docs.firstinspires.org/apriltag-detection-values
- *
- * The drive goal is to rotate to keep the Tag centered in the camera, while strafing to be directly in front of the tag, and
- * driving towards the tag to achieve the desired distance.
- * To reduce any motion blur (which will interrupt the detection process) the Camera exposure is reduced to a very low value (5mS)
- * You can determine the best Exposure and Gain values by using the ConceptAprilTagOptimizeExposure OpMode in this Samples folder.
- *
- * The code assumes a Robot Configuration with motors named: front_left_drive and front_right_drive, back_left_drive and back_right_drive.
- * The motor directions must be set so a positive power goes forward on all wheels.
- * This sample assumes that the current game AprilTag Library (usually for the current season) is being loaded by default,
- * so you should choose to approach a valid tag ID.
- *
- * Under manual control, the left stick will move forward/back & left/right.  The right stick will rotate the robot.
- * Manually drive the robot until it displays Target data on the Driver Station.
- *
- * Press and hold the *Left Bumper* to enable the automatic "Drive to target" mode.
- * Release the Left Bumper to return to manual driving mode.
- *
- * Under "Drive To Target" mode, the robot has three goals:
- * 1) Turn the robot to always keep the Tag centered on the camera frame. (Use the Target Bearing to turn the robot.)
- * 2) Strafe the robot towards the centerline of the Tag, so it approaches directly in front  of the tag.  (Use the Target Yaw to strafe the robot)
- * 3) Drive towards the Tag to get to the desired distance.  (Use Tag Range to drive the robot forward/backward)
- *
- * Use DESIRED_DISTANCE to set how close you want the robot to get to the target.
- * Speed and Turn sensitivity can be adjusted using the SPEED_GAIN, STRAFE_GAIN and TURN_GAIN constants.
- *
- * Use Android Studio to Copy this Class, and Paste it into the TeamCode/src/main/java/org/firstinspires/ftc/teamcode folder.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
- *
- */
-
-@TeleOp(name="AprilV Vision Test", group = "Fritz")
+@TeleOp(name="FritzBot Alpha", group = "Fritz")
 //@Disabled
-public class AprilVisionTest extends LinearOpMode
+public class FritzBotAlpha extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
+    final double DESIRED_DISTANCE = 36; //  this is how close the camera should get to the target (inches)
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
@@ -74,10 +36,12 @@ public class AprilVisionTest extends LinearOpMode
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
     final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
 
-    private DcMotor frontLeftDrive = null;  //  Used to control the left front drive wheel
+    /*private DcMotor frontLeftDrive = null;  //  Used to control the left front drive wheel
     private DcMotor frontRightDrive = null;  //  Used to control the right front drive wheel
     private DcMotor backLeftDrive = null;  //  Used to control the left back drive wheel
     private DcMotor backRightDrive = null;  //  Used to control the right back drive wheel
+    */
+    private DcMotorEx shooterMotor = null; // Used to control the shooter motor
 
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
@@ -98,18 +62,27 @@ public class AprilVisionTest extends LinearOpMode
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must match the names assigned during the robot configuration.
         // step (using the FTC Robot Controller app on the phone).
-        frontLeftDrive = hardwareMap.get(DcMotor.class, "frontLeftDrive");
+        /*frontLeftDrive = hardwareMap.get(DcMotor.class, "frontLeftDrive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRightDrive");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeftDrive");
         backRightDrive = hardwareMap.get(DcMotor.class, "backRightDrive");
+         */
+        shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        /*frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        backRightDrive.setDirection(DcMotor.Direction.FORWARD);*/
+        shooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        // Reset the motor encoder so that it reads zero ticks
+        shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        // Turn the motor back on, required if you use STOP_AND_RESET_ENCODER
+        shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         if (USE_WEBCAM)
             setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
@@ -163,14 +136,37 @@ public class AprilVisionTest extends LinearOpMode
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
                 double  headingError    = desiredTag.ftcPose.bearing;
-                double  yawError        = desiredTag.ftcPose.yaw;
+                //double  yawError        = desiredTag.ftcPose.yaw;
 
                 // Use the speed and turn "gains" to calculate how we want the robot to move.
                 drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
                 turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
-                strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+                //strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
 
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
+
+            } else if (gamepad1.right_bumper && targetFound) {
+
+                    // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
+                    double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
+                    double  headingError    = desiredTag.ftcPose.bearing;
+                    //double  yawError      = desiredTag.ftcPose.yaw;
+
+                    double shooterVelocity  = (desiredTag.ftcPose.range / DESIRED_DISTANCE);
+                    //returns 1.0 at desired distance, less than 1.0 closer to target
+
+                    // Use the speed and turn "gains" to calculate how we want the robot to move.
+                    // drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+                    // turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
+
+                    shooterMotor.setPower(shooterVelocity);
+
+                    drive  = -gamepad1.left_stick_y  / 2.0;  // Reduce drive rate to 50%.
+                    strafe = -gamepad1.left_stick_x  / 2.0;  // Reduce strafe rate to 50%.
+                    turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
+
+                    telemetry.addData("Manual Drive, Auto Shoot","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
+
             } else {
 
                 // drive using manual POV Joystick mode.  Slow things down to make the robot more controllable.
@@ -179,6 +175,8 @@ public class AprilVisionTest extends LinearOpMode
                 turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
                 telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
+
+
             telemetry.update();
 
             // Apply desired axes motions to the drivetrain.
@@ -216,10 +214,10 @@ public class AprilVisionTest extends LinearOpMode
         }
 
         // Send powers to the wheels.
-        frontLeftDrive.setPower(frontLeftPower);
+        /*frontLeftDrive.setPower(frontLeftPower);
         frontRightDrive.setPower(frontRightPower);
         backLeftDrive.setPower(backLeftPower);
-        backRightDrive.setPower(backRightPower);
+        backRightDrive.setPower(backRightPower);*/
     }
 
     /**

@@ -21,6 +21,7 @@ public class GamepadTest extends LinearOpMode {
         DcMotor backLeftDrive = hardwareMap.dcMotor.get("backLeftDrive");
         DcMotor frontRightDrive = hardwareMap.dcMotor.get("frontRightDrive");
         DcMotor backRightDrive = hardwareMap.dcMotor.get("backRightDrive");
+        DcMotor intakeMotor = hardwareMap.dcMotor.get("intakeMotor");
 
         frontLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -42,14 +43,21 @@ public class GamepadTest extends LinearOpMode {
 
         while (opModeIsActive()) {
             // Rising edge detector
-            /*
+
             if (currentGamepad1.a && !previousGamepad1.a) {
                 // This will set intakeToggle to true if it was previously false
                 // and intakeToggle to false if it was previously true,
                 // providing a toggling behavior.
                 intakeToggle = !intakeToggle;
             }
-             */
+
+            // Using the toggle variable to control the robot.
+            if (intakeToggle) {
+                intakeMotor.setPower(1);
+            }
+            else {
+                intakeMotor.setPower(0);
+            }
 
             //Falling Edge Detector
             /*
@@ -58,21 +66,11 @@ public class GamepadTest extends LinearOpMode {
             }
             */
 
-            // Using the toggle variable to control the robot.
-            /*
-            if (intakeToggle) {
-                intakeMotor.setPower(1);
-            }
-            else {
-                intakeMotor.setPower(0);
-            }
-            */
-
             //Rumble
             //Rumble, Motor 1, 100% for set time in Ms
             //gamepad1.rumble(int durationMs);
 
-            //Rumble, Both motors intensity control
+            /*Rumble, Both motors intensity control
             gamepad1.rumble(1.0, 1.0, 500);
             gamepad1.rumbleBlips(10);
 
@@ -83,7 +81,7 @@ public class GamepadTest extends LinearOpMode {
                     .addStep(0.0, 0.0, 250)
                     .build();
 
-            gamepad1.runRumbleEffect(effect);
+            gamepad1.runRumbleEffect(effect);*/
             }
         }
     }
